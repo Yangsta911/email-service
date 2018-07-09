@@ -1,0 +1,49 @@
+{
+  "name": "email-service",
+  "version": "0.0.1",
+  "description": "An email sending service backend. Multiple email service can be configured for failover",
+  "main": "./index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "./node_modules/.bin/eslint test/** src/**",
+    "start": "npm run build &&  npm run serve",
+    "dev": "NODE_ENV=dev nodemon ./src --exec babel-node ./src/index.js",
+    "build": "rm -rf ./build && babel src -d build --ignore **/*.spec.js",
+    "serve": "node dist/index.js",
+    "webpack": "rm -rf ./dist && webpack --config ./webpack.config.js",
+    "deploy": "npm run webpack && ./build.sh"
+  },
+  "pre-commit": [
+    "lint",
+    "test"
+  ],
+  "author": "Q.S. Wang <wangqs_eclipse@yahoo.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "dependencies": {
+    "babel-loader": "^7.1.5",
+    "cors": "^2.8.4",
+    "dateformat": "^3.0.3",
+    "email-validator": "^2.0.4",
+    "express": "^4.14.0",
+    "lamlog": "^2.0.1",
+    "morgan": "^1.9.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "eslint": "^4.11.0",
+    "jest": "^21.2.1",
+    "jest-mock-express": "^0.1.1",
+    "kexec": "^3.0.0",
+    "nodemon": "^1.17.5",
+    "pre-commit": "^1.2.2",
+    "webpack": "^3.10.0"
+  }
+}
