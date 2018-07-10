@@ -61,7 +61,7 @@ describe('email services', () => {
       test: async () => {
         return Promise.resolve(true);
       },
-      send: async() => {
+      send: async () => {
         mockSend();
         return Promise.resolve();
       }

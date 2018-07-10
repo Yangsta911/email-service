@@ -1,0 +1,8 @@
+{
+  "email": {
+    "from": "test@example.com",
+    "subject": "Hello Q.S. Wang",
+    "to": "saddly@gmail.com",
+    "text": "Sending with SendGrid is Fun"
+  }
+}

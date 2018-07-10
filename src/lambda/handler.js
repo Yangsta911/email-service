@@ -2,7 +2,7 @@ import { send } from '../emailservices/emailServices';
 import { createMailGunService } from '../emailservices/mailGunService';
 import { createSendGridService } from '../emailservices/sendGridService';
 import { createLogger } from '../logger/logger';
-import { validateMultipleEmailReceipts } from '../validator/validator';
+import { validateMultipleEmailReceipts, isString } from '../validator/validator';
 
 const logger = createLogger('com.siteminder.emailServices.lambda.handler.test');
 
@@ -67,6 +67,7 @@ const handlePost = (event, context, callback) => {
 
   if (!body || !body.email) {
     logger.debug('body', body);
+
     callback(null, createResponse(
       'Bad request: The email parameter is missing',
       400));
@@ -76,10 +77,29 @@ const handlePost = (event, context, callback) => {
 
   const { from, to, cc, bcc, subject, text } = body.email;
 
-  // TODO: ignore subject, text for now, 
-  // need figure out if we plan to show warning to end user
-  // for sending empty subject/text
-  // may put more restrict rules to avoid spam?
+  if (!validateMultipleEmailReceipts(from)) {
+    callback(null, createResponse(
+      'Bad request: a valid from  address is required',
+      400));
+
+    return;
+  }
+
+  if (!subject || !isString(subject) || subject.length === 0) {
+    callback(null, createResponse(
+      'Bad request: subject cannot be empty',
+      400));
+
+    return;
+  }
+
+  if (!text || !isString(text) || text.length === 0) {
+    callback(null, createResponse(
+      'Bad request: email body cannot be empty',
+      400));
+
+    return;
+  }
 
   // email validation is at lambda level, instead of at the service level
   // as this is business specific logic
@@ -94,7 +114,7 @@ const handlePost = (event, context, callback) => {
     emailParam.to = to;
   } else {
     callback(null, createResponse(
-      'Bad request: Valid to receipts is required',
+      'Bad request: at least one \'to\' receipts is required',
       400));
 
     return;

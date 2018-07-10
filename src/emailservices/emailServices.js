@@ -1,21 +1,22 @@
 
-import {createLogger} from '../logger/logger';
+import { createLogger } from '../logger/logger';
 
 const logger = createLogger('com.siteminder.emailServices.test');
 
 export const findGoodService = async (services) => {
 
-  if(!services || !Array.isArray(services) || services.length ==0){
+  if (!services || !Array.isArray(services) || services.length == 0) {
     const error = new Error('No email service configured');
     error.name = 'NoServiceFoundException';
     throw error;
   }
 
+  // TODO: This is probably not the best solution even with the request timeout mechanism
   for (const service of services) {
     try {
       const result = await service.test();
-      
-      if(result){
+
+      if (result) {
         logger.debug('Found good service', service);
         return service;
       }

@@ -41,4 +41,4 @@ const config = {
   prod,
 };
 
-export default config[env] || prod;
+export default config[env] || dev;

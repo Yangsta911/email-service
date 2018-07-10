@@ -46,7 +46,7 @@ describe('The email service lambda handler', () => {
     );
   });
 
-  xit('should return 200', (done) => {
+  fit('should return 200', (done) => {
     handler(
       {
         httpMethod: 'POST',
@@ -59,10 +59,9 @@ describe('The email service lambda handler', () => {
           //   subject: 'Hello Q.S. Wang',
           // }
           email: {
-            from: 'Mailgun Sandbox <postmaster@sandboxde9fd8cb91c148ea9bf1d7a8b5cff7c7.mailgun.org>',
+            from: 'postmaster@sandboxde9fd8cb91c148ea9bf1d7a8b5cff7c7.mailgun.org',
             subject: 'Hello Q.S. Wang',
-            to: '',
-
+            to: 'saddly@gmail.com',
             bcc: 'saddly@gmail.com',
             text: 'Congratulations Q.S. Wang, you just sent an email with Mailgun!  You are truly awesome!'
           }

@@ -1,8 +1,8 @@
-import {createMailGunService} from '../mailGunService';
+import { createMailGunService } from '../mailGunService';
 
 // Exclude from auto unit test, run manually for mailGun backend test
-describe('The mailGunService', ()=> {
-  it('should run the test', async () =>{
+describe('The mailGunService', () => {
+  xit('should run the test', async () => {
     const mailGunService = createMailGunService();
 
     const test = await mailGunService.test();
@@ -10,7 +10,7 @@ describe('The mailGunService', ()=> {
 
   });
 
-  fit('should send the email', async () =>{
+  xit('should send the email', async () => {
     const mailGunService = createMailGunService();
 
     const sent = await mailGunService.send({
@@ -24,4 +24,18 @@ describe('The mailGunService', ()=> {
     expect(sent).toBeTruthy();
 
   });
+
+  // xit('should poll the backend status', async (done) =>{
+  //   const mailGunService = createMailGunService();
+
+  //   mailGunService.poll();
+
+  //   setTimeout(()=>{
+  //     const staus = mailGunService.isSystemOk();
+
+  //     expect(staus).toBeTruthy();
+  //     done();
+  //   }, 5000)
+
+  // }, 10000);
 });
