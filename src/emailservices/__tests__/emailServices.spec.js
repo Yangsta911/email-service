@@ -1,7 +1,7 @@
 import { findGoodService, send } from '../emailServices';
 import { createLogger } from '../../logger/logger';
 
-const logger = createLogger('com.siteminder.emailServices.test');
+const logger = createLogger('com.siteminder.email-service.emailServices.test');
 
 describe('email services', () => {
   it('should fiind the second servie', async () => {
@@ -18,7 +18,6 @@ describe('email services', () => {
       }
     };
 
-
     const dummyServices = [
       service1,
       service2
@@ -26,7 +25,6 @@ describe('email services', () => {
 
     const service = await findGoodService(dummyServices);
     expect(service).toBe(service2);
-
   });
 
   it('should find the first service', async () => {
@@ -43,7 +41,6 @@ describe('email services', () => {
       }
     };
 
-
     const dummyServices = [
       service1,
       service2
@@ -56,7 +53,6 @@ describe('email services', () => {
 
   it('should send  the email', async () => {
     const mockSend = jest.fn();
-
     const service1 = {
       test: async () => {
         return Promise.resolve(true);
@@ -73,8 +69,6 @@ describe('email services', () => {
         return Promise.resolve(true);
       }
     };
-
-
     const dummyServices = [
       service1,
       service2

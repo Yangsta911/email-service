@@ -41,11 +41,16 @@ For a really system, at least following factors should be considered
 ## Development
 1. Fork/Clone
 1. Install dependencies - `npm install`
-1. Test - `npm test`
+1. Test - `npm run test`
 1. Build - `npm run build`
+1. Lint - `npm run lint`
+
+Note: some of the tests are marked as xit, as these tests are accessing the backend which should not be run as part of the standard alone unit tests.
 
 ## Deployment
-Note: use node8.10 as this is the version lambda supports
+Note: use node8.10 as this is the version lambda supports.
+
+Make sure you have aws cli installed, and configured correctly.
 
 1. Create a lambda function manully via AWS protal, and specify the lambda source is from a S3 bucket, e.g. s3://${bucketname}/emailservice.zip
 1. export 2 enviroment 
@@ -60,16 +65,25 @@ Note: use node8.10 as this is the version lambda supports
   SEND_GRID_TOKEN=<the send grid api token>
 
 ## End2End Test
+### Send email
+Please modify the email.json file, and change the address to the right emaiil address. 
+So far seems only gmail address are working all rightl
 1. `cd tests`
-1. `chmod +x ./build.sh`
-1. `./curl.sh email.json`
+1. `chmod +x ./send.sh`
+1. `./send.sh email.json`
+
+### Get status
+1. `cd tests`
+1. `chmod +x ./status.sh`
+1. `./status.sh`
 
 ## Issues
 1. The mail gun sand box's receipts invitation email is broken. Click agree show a 404 not found page. No way to test multiple receipts, CCs, BCCs
-2. 
+2. Seems only gmail address can receive the message. Haven't got enough time to figure out the reason. Guess that some of the free email accounts are filtering the emails form these api?
 
 ## TODO
 1. Support named email address
+1. The email providers have different rules of validation the email, need find the common set which become the validation rules of the service.
 1. Use a validator module for input validation
 1. Use AWS system store to replace the env variables
 1. Allow the user custom the request timeout value

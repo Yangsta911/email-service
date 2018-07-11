@@ -17,7 +17,7 @@ describe('The mailGunService', () => {
       from: 'Mailgun Sandbox <postmaster@sandboxde9fd8cb91c148ea9bf1d7a8b5cff7c7.mailgun.org>',
       subject: 'Hello Q.S. Wang',
       // cc: 'saddly@gmail.com',
-      to: 'saddly@gmail.com',
+      to: 'abcd@gmail.com',
       // bcc:'saddly@gmail.com',
       text: 'Congratulations Q.S. Wang, you just sent an email with Mailgun!  You are truly awesome!'
     });

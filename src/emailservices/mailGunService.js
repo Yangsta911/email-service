@@ -3,11 +3,12 @@ import * as querystring from 'querystring';
 import config from '../config';
 import { createLogger } from '../logger/logger';
 import { createTimer, clearTimer } from '../utils/timer';
+import { abortRequest } from './request';
 
-const logger = createLogger('com.siteminder.mailGunService');
+const logger = createLogger('com.siteminder.email-service.mailGunService');
 
 const doSendEmail = async (email) => {
-  logger.debug('Sending email', email);
+  logger.info('Sending email');
   const postData = querystring.stringify(email);
   const options = {
     host: config.mailGun.host,
@@ -32,18 +33,21 @@ const doSendEmail = async (email) => {
         return resolve(true);
       } else {
         //TODO: should return the right message from backend
-        logger.debug('SendEmailResponseCode:', resp.statusMessage);
         resp.resume();
-        return reject(false);
+        const error = new Error(resp.statusMessage);
+        error.code = resp.statusCode;
+        return reject(error);
       }
+    }).on('error', (err) => {
+      reject(err);
     });
     req.write(postData);
     req.end();
 
     // request time out monitor
     timer = createTimer(
-      req,
       () => {
+        abortRequest(req);
         return resolve(false);
       },
       10000
@@ -66,7 +70,6 @@ const doTestBackend = async () => {
     // logger.debug('Optons', options);
     let timer;
     const req = https.get(options, (resp) => {
-      // TODO: check the document of the return code.
       logger.debug('TestResponseCode:', resp.statusCode);
 
       clearTimer(timer);
@@ -84,27 +87,25 @@ const doTestBackend = async () => {
 
     // request time out monitor
     timer = createTimer(
-      req,
       () => {
+        abortRequest(req);
         return resolve(false);
-      });
-
+      },
+      10000);
   });
 };
-
-let isSystemOk = false;
 
 export const createMailGunService = () => {
   return {
     test: async () => {
-      if (!isSystemOk) {
-        isSystemOk = await doTestBackend();
-      }
-      return isSystemOk;
+      return doTestBackend();
     },
     send: async (email) => {
       return doSendEmail(email);
     },
+    name: () => {
+      return 'Mail Gun';
+    }
     // poll: (interval = 13000) => {
     //   logger.debug('Start polling backend');
     //   doTestBackend()

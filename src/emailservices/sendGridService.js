@@ -3,8 +3,9 @@ import config from '../config';
 import { createLogger } from '../logger/logger';
 import dateformat from 'dateformat';
 import { createTimer, clearTimer } from '../utils/timer';
+import { abortRequest } from './request';
 
-const logger = createLogger('com.siteminder.sendGrid');
+const logger = createLogger('com.siteminder.email-service.sendGrid');
 
 const getReceipts = (emails) => {
   const emailArray = emails.split(',');
@@ -15,7 +16,7 @@ const getReceipts = (emails) => {
     };
   });
 
-  logger.debug('objects', emailObjects);
+  // logger.debug('objects', JSON.stringify(emailObjects));
   return emailObjects;
 };
 
@@ -24,12 +25,8 @@ const buildSendGridEamil = (email) => {
 
 
   const { to, cc, bcc, from, subject, text } = email;
-  // logger.debug('email', subject);
   const sendGridEmail = {
     personalizations: [{
-      // to: []
-      // cc: [],
-      // bcc: []
     }],
     from: {
       email: from
@@ -58,10 +55,9 @@ const buildSendGridEamil = (email) => {
 };
 
 const doSendEmail = async (email) => {
-  logger.info('Sending email via send grid');
+  logger.info('Sending email');
   const sendGridEmail = buildSendGridEamil(email);
 
-  logger.debug('Email to send', sendGridEmail);
   const options = {
     host: config.sendGrid.host,
     port: config.sendGrid.port,
@@ -73,28 +69,32 @@ const doSendEmail = async (email) => {
     }
   };
 
-  logger.debug('Sending email via send grid', options);
   let timer;
   return new Promise((resolve, reject) => {
     const req = https.request(options, (resp) => {
       clearTimer(timer);
-
+      logger.debug('SendEmailResponseCode', resp.statusCode);
       if (resp.statusCode === 202) {
         resp.resume();
         return resolve(true);
       } else {
         //TODO: should return the right message from backend
-        logger.debug('SendEmailResponseCode:', resp.statusMessage);
         resp.resume();
-        reject(resp.statusMessage);
+        const error = new Error(resp.statusMessage);
+        error.code = resp.statusCode;
+        return reject(error);
       }
+    }).on('error', (err) => {
+      reject(err);
     });
 
     req.write(JSON.stringify(sendGridEmail));
     req.end();
+
+    // request time out monitor
     timer = createTimer(
-      req,
       () => {
+        abortRequest(req);
         return resolve(false);
       },
       10000);
@@ -106,7 +106,6 @@ const doTestBackend = async () => {
   return new Promise((resolve, reject) => {
     const day = dateformat(new Date(), 'yyyy-mm-dd');
 
-    // TODO: the options should be passed as parameter
     const options = {
       host: config.sendGrid.host,
       port: config.sendGrid.port,
@@ -126,32 +125,35 @@ const doTestBackend = async () => {
         return resolve(true);
       } else {
         resp.resume();
-        return resolve(false);
+        const error = new Error(resp.statusMessage);
+        error.code = resp.statusCode;
+        return reject(error);
       }
     }).on('error', (err) => {
       reject(err);
     });
     req.end();
     // request time out monitor
-    timer = createTimer(req, () => {
-      return resolve(false);
-    });
+    timer = createTimer(
+      () => {
+        abortRequest(req);
+        return resolve(false);
+      });
 
   });
 };
 
-let isSystemOk = false;
 export const createSendGridService = () => {
   return {
     test: async () => {
-      if (!isSystemOk) {
-        isSystemOk = await doTestBackend();
-      }
-      return isSystemOk;
+      return doTestBackend();
     },
     send: async (email) => {
       return doSendEmail(email);
     },
+    name: () => {
+      return 'Send Grid';
+    }
     // poll: (interval = 13000) => {
     //   logger.debug('Start polling backend');
     //   doTestBackend()

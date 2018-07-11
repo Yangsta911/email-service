@@ -29,6 +29,14 @@ describe('validator', () => {
     expect(validateMultipleEmailReceipts('a@a.com,b@b.com')).toBeTruthy();
   });
 
+  it('should return true for multiple gmail receipts', () => {
+    expect(validateMultipleEmailReceipts('name1234@gmail.com,name1235@gmail.com')).toBeTruthy();
+  });
+
+  it('should return fasle for multiple gmail receipts with shorter name', () => {
+    expect(validateMultipleEmailReceipts('name1@gmail.com,name1@gmail.com')).toBeFalsy();
+  });
+
   it('should return true for only one email in the multiple receipts string', () => {
     expect(validateMultipleEmailReceipts('a@a.com')).toBeTruthy();
   });

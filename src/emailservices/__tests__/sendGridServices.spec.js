@@ -2,7 +2,7 @@ import { createSendGridService } from '../sendGridService';
 
 // Exclude from auto unit test, run manually for sendGrid backend test
 describe('The mail sendGrid service', () => {
-  it('should run the test', async () => {
+  xit('should run the test', async () => {
     const sendGridService = createSendGridService();
 
     const test = await sendGridService.test();
@@ -27,16 +27,16 @@ describe('The mail sendGrid service', () => {
   //     }]
   // }
 
-  it('should send the email', async () => {
+  xit('should send the email', async () => {
     const sendGridService = createSendGridService();
 
     const email = {
-      from: 'test@example.com',
+      from: 'aabb@gmail.com',
       subject: 'Hello Q.S. Wang',
-      // cc: 'saddly@gmail.com',
-      to: 'saddly@gmail.com',
-      // bcc:'saddly@gmail.com',
-      text: 'Sending with SendGrid is Fun'
+      to: 'abcd@hotmail.com',
+      cc: '123456@gmail.com',
+      bcc:'cdef@gmail.com, fgh@gmail.com',
+      text: 'Sending with api is Fun'
     };
     const sent = await sendGridService.send(email);
     expect(sent).toBeTruthy();

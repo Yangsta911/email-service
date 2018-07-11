@@ -2,61 +2,45 @@ import { send } from '../emailservices/emailServices';
 import { createMailGunService } from '../emailservices/mailGunService';
 import { createSendGridService } from '../emailservices/sendGridService';
 import { createLogger } from '../logger/logger';
-import { validateMultipleEmailReceipts, isString } from '../validator/validator';
+import { validateMultipleEmailReceipts, isEmptyString } from '../validator/validator';
+import { createJSONResponse, createResponse } from './response';
 
-const logger = createLogger('com.siteminder.emailServices.lambda.handler.test');
+const logger = createLogger('com.siteminder.email-service.lambda.handler.test');
 
-export const createResponse = (message, status, contentType = 'plain/text') => {
-
-  if (status === undefined) {
-    throw new Error('Must specif the status code');
-  }
-  let headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Credentials': true,
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token',
-    'Access-Control-Allow-Methods': 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT',
-  };
-
-  if (contentType) {
-    headers = {
-      ...headers,
-      'Content-Type': contentType
-    };
-  }
-
-  let reponse = {
-    statusCode: status || 200,
-    headers,
-  };
-
-  if (message) {
-    reponse = {
-      ...reponse,
-      body: message,
-    };
-  }
-
-  return reponse;
-};
-
-export const createJSONResponse = (message, status) => {
-  return createResponse(JSON.stringify(message), status, 'application/json');
-};
+const services = [createSendGridService(), createMailGunService()];
 
 const doSendEmail = async (email) => {
-  const services = [createMailGunService(), createSendGridService()];
-
   return send(email, services);
 
 };
 
-const handleGet = () => {
+const handleGet = (event, context, callback) => {
+  const promises = [];
+  for (const service of services) {
+    promises.push(service.test());
+  }
 
+  Promise.all(promises)
+    .then((result) => {
+      const status = result.map((value, index) => {
+        return {
+          name: services[index].name(),
+          status: value,
+        };
+      });
+      callback(null, createJSONResponse(
+        status,
+        200));
+    })
+    .catch(() => {
+      callback(null, createResponse(
+        'Failed to get the status',
+        500));
+    });
 };
 
 
-const handlePost = (event, context, callback) => {
+const handlePost = async (event, context, callback) => {
   let body;
 
   try {
@@ -66,7 +50,7 @@ const handlePost = (event, context, callback) => {
   }
 
   if (!body || !body.email) {
-    logger.debug('body', body);
+    logger.debug('EventBody', body);
 
     callback(null, createResponse(
       'Bad request: The email parameter is missing',
@@ -76,7 +60,6 @@ const handlePost = (event, context, callback) => {
   }
 
   const { from, to, cc, bcc, subject, text } = body.email;
-
   if (!validateMultipleEmailReceipts(from)) {
     callback(null, createResponse(
       'Bad request: a valid from  address is required',
@@ -85,7 +68,7 @@ const handlePost = (event, context, callback) => {
     return;
   }
 
-  if (!subject || !isString(subject) || subject.length === 0) {
+  if (!subject || isEmptyString(subject)) {
     callback(null, createResponse(
       'Bad request: subject cannot be empty',
       400));
@@ -93,7 +76,7 @@ const handlePost = (event, context, callback) => {
     return;
   }
 
-  if (!text || !isString(text) || text.length === 0) {
+  if (!text || isEmptyString(text)) {
     callback(null, createResponse(
       'Bad request: email body cannot be empty',
       400));
@@ -114,7 +97,7 @@ const handlePost = (event, context, callback) => {
     emailParam.to = to;
   } else {
     callback(null, createResponse(
-      'Bad request: at least one \'to\' receipts is required',
+      'Bad request: at least one \'to\' receipt(s) is required',
       400));
 
     return;
@@ -128,10 +111,8 @@ const handlePost = (event, context, callback) => {
     emailParam.bcc = bcc;
   }
 
-  logger.debug('emailParam', emailParam);
   // both are invalid
   if (!emailParam.to && !emailParam.cc && !emailParam.bcc) {
-    logger.debug('to/cc/bcc cannot be both empty');
     callback(null, createResponse(
       'Bad request: The email parameter must contain at one valid receipts for to, cc or bcc fields',
       400));
@@ -144,11 +125,52 @@ const handlePost = (event, context, callback) => {
         'Email sent successfully',
         200));
     })
-    .catch(() => {
-      callback(null, createResponse(
-        'System error occurred while trying to send the email, please contact system admin to get detail logs',
-        500));
+    .catch((error) => {
+      logger.error('Sending email failed', error.code);
+      if (error && error.code === 400) {
+        callback(null, createResponse(
+          error.message,
+          400));
+      } else {
+        // TODO: 1. define the systsem errors, 2. Setup an error handling mechanism
+        if (error && error.name === 'NoGoodServiceFoundException') {
+          callback(null, createResponse(
+            'Seems all email providers are down, please try later',
+            500));
+        } else {
+          callback(null, createResponse(
+            'System error occurred while trying to send the email, please contact system admin to get detail logs',
+            500));
+        }
+
+      }
     });
+
+  // doSendEmail(emailParam)
+  //   .then(() => {
+  //     callback(null, createResponse(
+  //       'Email sent successfully',
+  //       200));
+  //   })
+  //   .catch((error) => {
+  //     logger.error('Sending email failed', error.code);
+  //     if(error && error.code === 400){
+  //       callback(null, createResponse(
+  //         error.message,
+  //         400));
+  //     }else {
+  //       if(error && error.name === 'NoGoodServiceFoundException'){
+  //         callback(null, createResponse(
+  //           'Seems all email providers are down, please try later',
+  //           500));
+  //       }else{
+  //         callback(null, createResponse(
+  //           'System error occurred while trying to send the email, please contact system admin to get detail logs',
+  //           500));
+  //       }
+
+  //     }
+  //   });
 };
 
 const methodHandlers = {

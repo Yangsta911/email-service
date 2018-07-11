@@ -2,7 +2,9 @@
   "email": {
     "from": "test@example.com",
     "subject": "Hello Q.S. Wang",
-    "to": "saddly@gmail.com",
-    "text": "Sending with SendGrid is Fun"
+    "to": "name1233@gmail.com,name1234@gmail.com",
+    "cc": "name1235@gmail.com,name1236@gmail.com",
+    "bcc": "name1237@gmail.com,name1238@gmail.com",
+    "text": "Sending email via api is fun"
   }
 }

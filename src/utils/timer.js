@@ -1,19 +1,14 @@
 import { createLogger } from '../logger/logger';
 
-const logger = createLogger('com.siteminder.timer');
+const logger = createLogger('com.siteminder.email-service.timer');
 
-export const createTimer = (req, callback, timeout = 5000) => {
-  if (!req) {
+export const createTimer = (callback, timeout = 5000) => {
+  if (!callback) {
     return undefined;
   }
 
-  logger.info('creating timer');
+  logger.info('Creating timer');
   return setTimeout(() => {
-    req.on('error', () => {
-      //abort caused socket error, sawllow it here.
-    });
-    req.abort();
-    logger.debug('requst aborted');
     if (callback) {
       callback();
     }
