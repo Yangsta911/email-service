@@ -8,6 +8,9 @@ describe('email services', () => {
     const service1 = {
       test: async () => {
         Promise.reject(false);
+      },
+      name: () => {
+        return 'service1';
       }
     };
 
@@ -15,6 +18,9 @@ describe('email services', () => {
       test: async () => {
         logger.debug('Testing service2');
         return Promise.resolve(true);
+      },
+      name: () => {
+        return 'service2';
       }
     };
 
@@ -31,6 +37,9 @@ describe('email services', () => {
     const service1 = {
       test: async () => {
         return Promise.resolve(true);
+      },
+      name: () => {
+        return 'service1';
       }
     };
 
@@ -38,6 +47,9 @@ describe('email services', () => {
       test: async () => {
         logger.debug('Testing service2');
         return Promise.resolve(true);
+      },
+      name: () => {
+        return 'service2';
       }
     };
 
@@ -60,6 +72,9 @@ describe('email services', () => {
       send: async () => {
         mockSend();
         return Promise.resolve();
+      },
+      name: () => {
+        return 'service1';
       }
     };
 
@@ -67,6 +82,9 @@ describe('email services', () => {
       test: async () => {
         logger.debug('Testing service2');
         return Promise.resolve(true);
+      },
+      name: () => {
+        return 'service2';
       }
     };
     const dummyServices = [
